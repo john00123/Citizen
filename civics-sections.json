@@ -1,0 +1,55 @@
+{
+  "sections": [
+    {
+      "name": "AMERICAN GOVERNMENT",
+      "subsections": [
+        {
+          "name": "Principles of American Democracy",
+          "questionRange": [0, 11]
+        },
+        {
+          "name": "System of Government",
+          "questionRange": [12, 46]
+        },
+        {
+          "name": "Rights and Responsibilities",
+          "questionRange": [47, 56]
+        }
+      ]
+    },
+    {
+      "name": "AMERICAN HISTORY",
+      "subsections": [
+        {
+          "name": "Colonial Period and Independence",
+          "questionRange": [58, 70]
+        },
+        {
+          "name": "1800s",
+          "questionRange": [70, 76]
+        },
+        {
+          "name": "Recent American History and Other Important Historical Information",
+          "questionRange": [77, 86]
+        }
+      ]
+    },
+    {
+      "name": "INTEGRATED CIVICS",
+      "subsections": [
+        {
+          "name": "Geography",
+          "questionRange": [87, 94]
+        },
+        {
+          "name": "Symbols",
+          "questionRange": [95, 97]
+        },
+        {
+          "name": "Holidays",
+          "questionRange": [98, 100]
+        }
+      ]
+    }
+  ]
+}

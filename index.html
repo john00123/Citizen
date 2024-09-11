@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civics Questions Grid</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Suisse', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #FFFEF2;
+            font-size: 14px; /* Reduced base font size */
+        }
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .section {
+            padding: 40px;
+            border-radius: 0;
+           
+        }
+        .subsection {
+            position: relative;
+            margin-bottom: 40px;
+        }
+        .subsection-title {
+            
+            padding: 10px 0;
+            margin: 0;
+            position: sticky;
+            top: 50px; /* Adjust this value based on your sticky nav height */
+            z-index: 10;
+            font-size: 18px;
+            transition: background-color 0.3s ease, border-bottom 0.3s ease;
+        }
+        .subsection-title.sticky {
+            background-color: #FFFEF2;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px; /* Changed from 30px to 15px */
+            padding-top: 20px;
+        }
+        .card {
+            background-color: #f6f5e8;
+            border-radius: 0;
+            padding: 20px;
+            height: 200px; /* Changed from 230px to 200px */
+            perspective: 1000px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            background-color: #efeee2; /* Slightly darker shade */
+            color: #000033; /* Very dark blue */
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                rgba(255, 0, 0, 0.1),
+                rgba(255, 255, 255, 0.1),
+                rgba(0, 0, 255, 0.1)
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            animation: gradientMove 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .card:hover::after {
+            opacity: 1;
+        }
+        @keyframes gradientMove {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(-30px, -30px) rotate(180deg);
+            }
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .question, .answer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .question {
+            font-weight: 500;
+            font-size: 16px; /* Reduced from 18px */
+        }
+        .answer {
+            transform: rotateY(180deg);
+            font-size: 14px; /* Reduced from 16px */
+        }
+        h2 {
+            color: #333;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            font-size: 24px; /* Reduced from 28px */
+            font-weight: 500;
+        }
+        h3 {
+            color: #666;
+            margin-top: 30px;
+            font-size: 20px; /* Reduced from 22px */
+            font-weight: 400;
+        }
+
+        /* Sticky navigation styles */
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            background-color: #333;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: flex-start; /* Changed from center to flex-start */
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            max-width: 1440px; /* Added to match content width */
+            margin: 0 auto; /* Center the nav container */
+            padding: 0 20px; /* Added padding to match content */
+        }
+        .nav-tabs li {
+            margin-right: 20px; /* Changed from margin: 0 20px */
+            margin-left: 0; /* Added to ensure left alignment */
+        }
+        .nav-tabs a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 0;
+            transition: background-color 0.3s;
+            font-size: 14px; /* Reduced from 16px */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-tabs a:hover, .nav-tabs a.active {
+            background-color: #666;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        /* Quiz section styles */
+        #quiz {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        #quizProgress {
+            font-size: 16px; /* Reduced from 18px */
+            margin-bottom: 20px;
+        }
+        #quizCard {
+            height: 280px; /* Slightly reduced height */
+            margin-bottom: 30px;
+            transition: opacity 0.3s ease;
+        }
+        #quizCard .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        #quizCard.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        #quizCard .question,
+        #quizCard .answer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #quizCard .answer {
+            transform: rotateY(180deg);
+        }
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+        }
+        .quiz-controls button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px; /* Reduced from 16px */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .quiz-controls button:hover {
+            background-color: #555;
+        }
+        .quiz-controls button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="sticky-nav">
+        <ul class="nav-tabs">
+            <li><a href="#study" class="active">Study</a></li>
+            <li><a href="#quiz">Quiz</a></li>
+        </ul>
+    </nav>
+
+    <div id="study" class="content-section active">
+        <div class="grid-container" id="questionsContainer">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <div id="quiz" class="content-section">
+        <h2>Quiz Section</h2>
+        <div id="quizProgress">Question <span id="currentQuestion">1</span> of 20</div>
+        <div id="quizCard" class="card">
+            <div class="card-inner">
+                <div class="question"></div>
+                <div class="answer"></div>
+            </div>
+        </div>
+        <div class="quiz-controls">
+            <button id="prevButton">Previous</button>
+            <button id="nextButton">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Fetch both the questions and sections data
+        Promise.all([
+            fetch('civics-questions-db.json').then(response => response.json()),
+            fetch('civics-sections.json').then(response => response.json())
+        ])
+        .then(([questionsData, sectionsData]) => {
+            const container = document.getElementById('questionsContainer');
+            let currentSectionIndex = 0;
+            let currentSubsectionIndex = 0;
+
+            questionsData.questions.forEach((item, index) => {
+                const questionNumber = index + 1;
+                const section = sectionsData.sections[currentSectionIndex];
+                const subsection = section.subsections[currentSubsectionIndex];
+
+                // Check if we need to start a new section or subsection
+                if (questionNumber > subsection.questionRange[1]) {
+                    currentSubsectionIndex++;
+                    if (currentSubsectionIndex >= section.subsections.length) {
+                        currentSectionIndex++;
+                        currentSubsectionIndex = 0;
+                    }
+                }
+
+                // Create or get the current section element
+                let sectionElement = document.getElementById(`section-${section.name}`);
+                if (!sectionElement) {
+                    sectionElement = document.createElement('div');
+                    sectionElement.id = `section-${section.name}`;
+                    sectionElement.className = 'section';
+                    // Add the anchor link here
+                    sectionElement.innerHTML = `<h2 id="${section.name.toLowerCase().replace(/\s+/g, '-')}">${section.name}</h2>`;
+                    container.appendChild(sectionElement);
+                }
+
+                // Create or get the current subsection element
+                let subsectionElement = document.getElementById(`subsection-${section.name}-${subsection.name}`);
+                if (!subsectionElement) {
+                    subsectionElement = document.createElement('div');
+                    subsectionElement.id = `subsection-${section.name}-${subsection.name}`;
+                    subsectionElement.className = 'subsection';
+                    subsectionElement.innerHTML = `
+                        <h3 class="subsection-title">${subsection.name}</h3>
+                        <div class="cards-grid"></div>
+                    `;
+                    sectionElement.appendChild(subsectionElement);
+                }
+
+                // Create the card
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="question">${item.q}</div>
+                        <div class="answer">${item.a}</div>
+                    </div>
+                `;
+                
+                // Add click event listener to each card as it's created
+                card.addEventListener('click', function() {
+                    this.classList.toggle('flipped');
+                });
+
+                subsectionElement.querySelector('.cards-grid').appendChild(card);
+            });
+
+            // Add sticky behavior to subsection titles
+            const subsectionTitles = document.querySelectorAll('.subsection-title');
+            let currentSticky = null;
+            const navHeight = 40; // Adjust this value based on your sticky nav height
+
+            function updateStickySubsections() {
+                const scrollPosition = window.pageYOffset;
+                const firstSubsectionTop = subsectionTitles[0].offsetTop - navHeight;
+
+                subsectionTitles.forEach((title, index) => {
+                    const parent = title.parentElement;
+                    const parentTop = parent.offsetTop - navHeight;
+                    const parentBottom = parentTop + parent.offsetHeight;
+
+                    if (scrollPosition >= parentTop && scrollPosition < parentBottom) {
+                        if (currentSticky !== title) {
+                            if (currentSticky) {
+                                currentSticky.style.position = 'relative';
+                                currentSticky.style.top = 'auto';
+                                currentSticky.classList.remove('sticky');
+                            }
+                            title.style.position = 'sticky';
+                            title.style.top = `${navHeight}px`;
+                            title.classList.add('sticky');
+                            currentSticky = title;
+                        }
+                    } else {
+                        title.style.position = 'relative';
+                        title.style.top = 'auto';
+                        title.classList.remove('sticky');
+                        if (currentSticky === title) {
+                            currentSticky = null;
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateStickySubsections);
+            updateStickySubsections(); // Initial call
+
+            // Modify the click event listener for the quiz card
+            document.getElementById('quizCard').addEventListener('click', function() {
+                const card = this;
+                const cardInner = card.querySelector('.card-inner');
+                
+                // Fade out
+                card.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Flip the card
+                    card.classList.toggle('flipped');
+                    
+                    // Fade back in after a short delay
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                    }, 50);
+                }, 300); // Duration of the fade out
+            });
+
+            let quizQuestions = [];
+            let currentQuizIndex = 0;
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            function initializeQuiz() {
+                quizQuestions = [...questionsData.questions];
+                shuffleArray(quizQuestions);
+                quizQuestions = quizQuestions.slice(0, 20);
+                currentQuizIndex = 0;
+                showQuizQuestion();
+            }
+
+            function showQuizQuestion() {
+                const quizCard = document.getElementById('quizCard');
+                const cardInner = quizCard.querySelector('.card-inner');
+                const question = quizQuestions[currentQuizIndex];
+                
+                // Fade out
+                quizCard.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Store the original transition
+                    const originalTransition = cardInner.style.transition;
+                    
+                    // Remove transition temporarily for instant flip
+                    cardInner.style.transition = 'none';
+                    
+                    // Remove the 'flipped' class when showing a new question
+                    quizCard.classList.remove('flipped');
+                    
+                    // Change the content
+                    cardInner.querySelector('.question').textContent = question.q;
+                    cardInner.querySelector('.answer').textContent = question.a;
+                    
+                    // Force reflow to ensure the removal of the 'flipped' class takes effect
+                    void cardInner.offsetWidth;
+                    
+                    // Restore the original transition
+                    cardInner.style.transition = originalTransition;
+                    
+                    // Fade back in
+                    quizCard.style.opacity = '1';
+                }, 300); // Duration of the fade out
+
+                document.getElementById('currentQuestion').textContent = currentQuizIndex + 1;
+                updateQuizButtons();
+            }
+
+            function updateQuizButtons() {
+                document.getElementById('prevButton').disabled = currentQuizIndex === 0;
+                document.getElementById('nextButton').disabled = currentQuizIndex === 19;
+            }
+
+            document.getElementById('prevButton').addEventListener('click', () => {
+                if (currentQuizIndex > 0) {
+                    currentQuizIndex--;
+                    showQuizQuestion();
+                }
+            });
+
+            document.getElementById('nextButton').addEventListener('click', () => {
+                if (currentQuizIndex < 19) {
+                    currentQuizIndex++;
+                    showQuizQuestion();
+                }
+            });
+
+            // Modify the navigation functionality
+            document.querySelectorAll('.nav-tabs a').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.querySelectorAll('.nav-tabs a').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    const targetId = tab.getAttribute('href').substring(1);
+                    document.getElementById(targetId).classList.add('active');
+                    tab.classList.add('active');
+
+                    if (targetId === 'quiz') {
+                        initializeQuiz();
+                    }
+                });
+            });
+        })
+        .catch(error => console.error('Error loading data:', error));
+
+        // Add navigation functionality
+        document.querySelectorAll('.nav-tabs a').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.querySelectorAll('.nav-tabs a').forEach(t => {
+                    t.classList.remove('active');
+                });
+                const targetId = tab.getAttribute('href').substring(1);
+                document.getElementById(targetId).classList.add('active');
+                tab.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
+<style>
+    .side-nav {
+        position: fixed;
+        top: 50%;
+        left: 20px;
+        transform: translateY(-50%);
+        z-index: 1000;
+    }
+    .side-nav ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    .side-nav li {
+        margin: 10px 0;
+    }
+    .side-nav a {
+        display: block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ccc;
+        transition: background-color 0.3s ease;
+    }
+    .side-nav a:hover,
+    .side-nav a.active {
+        background-color: #333;
+    }
+</style>
+
+<nav class="side-nav">
+    <ul>
+        <li><a href="#american-government" data-section="section-American Government"></a></li>
+        <li><a href="#american-history" data-section="section-American History"></a></li>
+        <li><a href="#integrated-civics" data-section="section-Integrated Civics"></a></li>
+    </ul>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sideNavLinks = document.querySelectorAll('.side-nav a');
+        const sections = document.querySelectorAll('.section');
+
+        // Smooth scroll function
+        function smoothScroll(target) {
+            window.scrollTo({
+                top: target.offsetTop,
+                behavior: 'smooth'
+            });
+        }
+
+        // Update active link on scroll
+        function updateActiveLink() {
+            let current = '';
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 60) {
+                    current = section.id;
+                }
+            });
+
+            sideNavLinks.forEach((link) => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Add click event listeners to side nav links
+        sideNavLinks.forEach((link) => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                smoothScroll(targetSection);
+            });
+        });
+
+        // Add scroll event listener
+        window.addEventListener('scroll', updateActiveLink);
+
+        // Initial call to set active link on page load
+        updateActiveLink();
+    });
+</script>
+
+

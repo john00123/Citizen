@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Civics Questions Grid</title>
+    <title>American Government - Civics Questions</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -251,14 +251,16 @@
 <body>
     <nav class="sticky-nav">
         <ul class="nav-tabs">
-            <li><a href="#study" class="active">Study</a></li>
+            <li><a href="index.html" class="active">American Government</a></li>
+            <li><a href="american-history.html">American History</a></li>
+            <li><a href="integrated-civics.html">Integrated Civics</a></li>
             <li><a href="#quiz">Quiz</a></li>
         </ul>
     </nav>
 
     <div id="study" class="content-section active">
         <div class="grid-container" id="questionsContainer">
-            <!-- Questions will be dynamically inserted here -->
+            <!-- Only American Government questions will be dynamically inserted here -->
         </div>
     </div>
 
@@ -278,105 +280,76 @@
     </div>
 
     <script>
-        // Fetch both the questions and sections data
         Promise.all([
             fetch('civics-questions-db.json').then(response => response.json()),
             fetch('civics-sections.json').then(response => response.json())
         ])
         .then(([questionsData, sectionsData]) => {
             const container = document.getElementById('questionsContainer');
-            let currentSectionIndex = 0;
-            let currentSubsectionIndex = 0;
+            const americanGovernmentSection = sectionsData.sections.find(section => 
+                section.name.toLowerCase() === "american government"
+            );
+            
+            if (!americanGovernmentSection) {
+                console.error("American Government section not found in the data");
+                console.log("Available sections:", sectionsData.sections.map(s => s.name));
+                return;
+            }
 
-            questionsData.questions.forEach((item, index) => {
-                const questionNumber = index + 1;
-                const section = sectionsData.sections[currentSectionIndex];
-                const subsection = section.subsections[currentSubsectionIndex];
-
-                // Check if we need to start a new section or subsection
-                if (questionNumber > subsection.questionRange[1]) {
-                    currentSubsectionIndex++;
-                    if (currentSubsectionIndex >= section.subsections.length) {
-                        currentSectionIndex++;
-                        currentSubsectionIndex = 0;
-                    }
-                }
-
-                // Create or get the current section element
-                let sectionElement = document.getElementById(`section-${section.name}`);
-                if (!sectionElement) {
-                    sectionElement = document.createElement('div');
-                    sectionElement.id = `section-${section.name}`;
-                    sectionElement.className = 'section';
-                    // Add the anchor link here
-                    sectionElement.innerHTML = `<h2 id="${section.name.toLowerCase().replace(/\s+/g, '-')}">${section.name}</h2>`;
-                    container.appendChild(sectionElement);
-                }
-
-                // Create or get the current subsection element
-                let subsectionElement = document.getElementById(`subsection-${section.name}-${subsection.name}`);
-                if (!subsectionElement) {
-                    subsectionElement = document.createElement('div');
-                    subsectionElement.id = `subsection-${section.name}-${subsection.name}`;
-                    subsectionElement.className = 'subsection';
-                    subsectionElement.innerHTML = `
-                        <h3 class="subsection-title">${subsection.name}</h3>
-                        <div class="cards-grid"></div>
-                    `;
-                    sectionElement.appendChild(subsectionElement);
-                }
-
-                // Create the card
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-inner">
-                        <div class="question">${item.q}</div>
-                        <div class="answer">${item.a}</div>
-                    </div>
+            // Create subsections
+            americanGovernmentSection.subsections.forEach(subsection => {
+                const subsectionElement = document.createElement('div');
+                subsectionElement.className = 'subsection';
+                subsectionElement.innerHTML = `
+                    <h3 class="subsection-title">${subsection.name}</h3>
+                    <div class="cards-grid"></div>
                 `;
-                
-                // Add click event listener to each card as it's created
-                card.addEventListener('click', function() {
-                    this.classList.toggle('flipped');
-                });
+                container.appendChild(subsectionElement);
 
-                subsectionElement.querySelector('.cards-grid').appendChild(card);
+                const cardsGrid = subsectionElement.querySelector('.cards-grid');
+
+                questionsData.questions.forEach((item, index) => {
+                    const questionNumber = index + 1;
+                    if (questionNumber >= subsection.questionRange[0] && 
+                        questionNumber <= subsection.questionRange[1]) {
+                        // Create the card
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <div class="card-inner">
+                                <div class="question">${item.q}</div>
+                                <div class="answer">${item.a}</div>
+                            </div>
+                        `;
+                        
+                        // Add click event listener to each card as it's created
+                        card.addEventListener('click', function() {
+                            this.classList.toggle('flipped');
+                        });
+
+                        cardsGrid.appendChild(card);
+                    }
+                });
             });
 
             // Add sticky behavior to subsection titles
             const subsectionTitles = document.querySelectorAll('.subsection-title');
-            let currentSticky = null;
             const navHeight = 40; // Adjust this value based on your sticky nav height
 
             function updateStickySubsections() {
                 const scrollPosition = window.pageYOffset;
-                const firstSubsectionTop = subsectionTitles[0].offsetTop - navHeight;
 
-                subsectionTitles.forEach((title, index) => {
+                subsectionTitles.forEach((title) => {
                     const parent = title.parentElement;
                     const parentTop = parent.offsetTop - navHeight;
                     const parentBottom = parentTop + parent.offsetHeight;
 
                     if (scrollPosition >= parentTop && scrollPosition < parentBottom) {
-                        if (currentSticky !== title) {
-                            if (currentSticky) {
-                                currentSticky.style.position = 'relative';
-                                currentSticky.style.top = 'auto';
-                                currentSticky.classList.remove('sticky');
-                            }
-                            title.style.position = 'sticky';
-                            title.style.top = `${navHeight}px`;
-                            title.classList.add('sticky');
-                            currentSticky = title;
-                        }
+                        title.classList.add('sticky');
+                        title.style.top = `${navHeight}px`;
                     } else {
-                        title.style.position = 'relative';
-                        title.style.top = 'auto';
                         title.classList.remove('sticky');
-                        if (currentSticky === title) {
-                            currentSticky = null;
-                        }
+                        title.style.top = 'auto';
                     }
                 });
             }
@@ -384,25 +357,7 @@
             window.addEventListener('scroll', updateStickySubsections);
             updateStickySubsections(); // Initial call
 
-            // Modify the click event listener for the quiz card
-            document.getElementById('quizCard').addEventListener('click', function() {
-                const card = this;
-                const cardInner = card.querySelector('.card-inner');
-                
-                // Fade out
-                card.style.opacity = '0';
-                
-                setTimeout(() => {
-                    // Flip the card
-                    card.classList.toggle('flipped');
-                    
-                    // Fade back in after a short delay
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                    }, 50);
-                }, 300); // Duration of the fade out
-            });
-
+            // Quiz functionality
             let quizQuestions = [];
             let currentQuizIndex = 0;
 
@@ -426,32 +381,18 @@
                 const cardInner = quizCard.querySelector('.card-inner');
                 const question = quizQuestions[currentQuizIndex];
                 
-                // Fade out
                 quizCard.style.opacity = '0';
                 
                 setTimeout(() => {
-                    // Store the original transition
                     const originalTransition = cardInner.style.transition;
-                    
-                    // Remove transition temporarily for instant flip
                     cardInner.style.transition = 'none';
-                    
-                    // Remove the 'flipped' class when showing a new question
                     quizCard.classList.remove('flipped');
-                    
-                    // Change the content
                     cardInner.querySelector('.question').textContent = question.q;
                     cardInner.querySelector('.answer').textContent = question.a;
-                    
-                    // Force reflow to ensure the removal of the 'flipped' class takes effect
                     void cardInner.offsetWidth;
-                    
-                    // Restore the original transition
                     cardInner.style.transition = originalTransition;
-                    
-                    // Fade back in
                     quizCard.style.opacity = '1';
-                }, 300); // Duration of the fade out
+                }, 300);
 
                 document.getElementById('currentQuestion').textContent = currentQuizIndex + 1;
                 updateQuizButtons();
@@ -476,131 +417,44 @@
                 }
             });
 
-            // Modify the navigation functionality
+            document.getElementById('quizCard').addEventListener('click', function() {
+                this.classList.toggle('flipped');
+            });
+
+            // Navigation functionality
             document.querySelectorAll('.nav-tabs a').forEach(tab => {
                 tab.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelectorAll('.content-section').forEach(section => {
-                        section.classList.remove('active');
-                    });
-                    document.querySelectorAll('.nav-tabs a').forEach(t => {
-                        t.classList.remove('active');
-                    });
-                    const targetId = tab.getAttribute('href').substring(1);
-                    document.getElementById(targetId).classList.add('active');
-                    tab.classList.add('active');
+                    const href = tab.getAttribute('href');
+                    if (href.startsWith('#')) {
+                        e.preventDefault();
+                        document.querySelectorAll('.content-section').forEach(section => {
+                            section.classList.remove('active');
+                        });
+                        document.querySelectorAll('.nav-tabs a').forEach(t => {
+                            t.classList.remove('active');
+                        });
+                        const targetId = href.substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            targetElement.classList.add('active');
+                            tab.classList.add('active');
 
-                    if (targetId === 'quiz') {
-                        initializeQuiz();
+                            if (targetId === 'quiz') {
+                                initializeQuiz();
+                            }
+                        }
+                    } else {
+                        document.querySelectorAll('.nav-tabs a').forEach(t => {
+                            t.classList.remove('active');
+                        });
+                        tab.classList.add('active');
                     }
                 });
             });
         })
         .catch(error => console.error('Error loading data:', error));
-
-        // Add navigation functionality
-        document.querySelectorAll('.nav-tabs a').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.querySelectorAll('.nav-tabs a').forEach(t => {
-                    t.classList.remove('active');
-                });
-                const targetId = tab.getAttribute('href').substring(1);
-                document.getElementById(targetId).classList.add('active');
-                tab.classList.add('active');
-            });
-        });
     </script>
 </body>
 </html>
-<style>
-    .side-nav {
-        position: fixed;
-        top: 50%;
-        left: 20px;
-        transform: translateY(-50%);
-        z-index: 1000;
-    }
-    .side-nav ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-    }
-    .side-nav li {
-        margin: 10px 0;
-    }
-    .side-nav a {
-        display: block;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #ccc;
-        transition: background-color 0.3s ease;
-    }
-    .side-nav a:hover,
-    .side-nav a.active {
-        background-color: #333;
-    }
-</style>
-
-<nav class="side-nav">
-    <ul>
-        <li><a href="#american-government" data-section="section-American Government"></a></li>
-        <li><a href="#american-history" data-section="section-American History"></a></li>
-        <li><a href="#integrated-civics" data-section="section-Integrated Civics"></a></li>
-    </ul>
-</nav>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const sideNavLinks = document.querySelectorAll('.side-nav a');
-        const sections = document.querySelectorAll('.section');
-
-        // Smooth scroll function
-        function smoothScroll(target) {
-            window.scrollTo({
-                top: target.offsetTop,
-                behavior: 'smooth'
-            });
-        }
-
-        // Update active link on scroll
-        function updateActiveLink() {
-            let current = '';
-            sections.forEach((section) => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - 60) {
-                    current = section.id;
-                }
-            });
-
-            sideNavLinks.forEach((link) => {
-                link.classList.remove('active');
-                if (link.getAttribute('data-section') === current) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
-        // Add click event listeners to side nav links
-        sideNavLinks.forEach((link) => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                const targetSection = document.getElementById(targetId);
-                smoothScroll(targetSection);
-            });
-        });
-
-        // Add scroll event listener
-        window.addEventListener('scroll', updateActiveLink);
-
-        // Initial call to set active link on page load
-        updateActiveLink();
-    });
-</script>
 
 
